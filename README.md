@@ -1,48 +1,88 @@
 # AI ChatBot
 
-An AI-powered chatbot built with C# that can integrate with OpenAI's GPT models or run with a built-in mock AI service.
+An AI-powered chatbot built with C# that supports multiple AI providers through a unified LiteLLM service.
 
 ## Features
 
-- 🤖 AI-powered responses using OpenAI's GPT models
-- 🔄 Fallback to mock AI service when OpenAI is not configured
-- ⚙️ Configurable via `appsettings.json`
-- 🪵 Structured logging with Microsoft.Extensions.Logging
-- 💉 Dependency injection for clean architecture
-- 🎨 Colorful console interface
-- 🔧 Easy to extend and customize
+- 🤖 **Multi-Provider Support**: OpenAI, Anthropic Claude, Google Gemini, Ollama (local models)
+- 🌐 **Unified Interface**: Single configuration for all AI providers
+- 🏠 **Local Models**: Support for Ollama with Llama, Mistral, DeepSeek, Qwen, and more
+- 🔄 **Fallback Mode**: Built-in mock AI service when no API key is configured
+- ⚙️ **Easy Configuration**: Simple JSON configuration or secure user secrets
+- 🪵 **Structured Logging**: Built-in logging with Microsoft.Extensions.Logging
+- 💉 **Clean Architecture**: Dependency injection and modular design
+- 🎨 **Colorful Interface**: User-friendly console with colors and animations
+- 🔧 **Extensible**: Easy to add new providers or customize behavior
+
+## Supported AI Providers
+
+| Provider | Models | Example |
+|----------|--------|---------|
+| **OpenAI** | GPT-3.5, GPT-4, o1 | `gpt-4`, `gpt-3.5-turbo` |
+| **Anthropic** | Claude 3 | `claude-3-sonnet-20240229` |
+| **Google** | Gemini | `gemini-1.5-pro`, `gemini-1.5-flash` |
+| **Ollama** | Local models | `llama3.1:8b`, `mistral:7b` |
+| **Custom** | Any OpenAI-compatible API | Configure via `BaseUrl` |
 
 ## Prerequisites
 
 - .NET 8.0 SDK or later
-- (Optional) OpenAI API key for full AI functionality
+- (Optional) API key for your chosen provider
+- (Optional) Ollama installed for local models
 
-## Setup
+## Quick Start
 
-### 1. Clone or Download the Project
+### 1. Clone the Repository
+```bash
+git clone https://github.com/hereandnowai/ai-chatbot-csharp.git
+cd ai-chatbot-csharp
+```
 
-Ensure you have all the project files in your directory.
+### 2. Choose Your AI Provider
 
-### 2. Configure the Application
+#### Option A: Quick Test (No API Key Required)
+Just run the app - it will use the mock AI service:
+```bash
+dotnet run
+```
 
-Edit the `appsettings.json` file to configure the chatbot:
+#### Option B: Use OpenAI GPT-4
+```bash
+dotnet user-secrets set "LiteLLM:ApiKey" "your-openai-api-key"
+dotnet user-secrets set "LiteLLM:Model" "gpt-4"
+dotnet run
+```
+
+#### Option C: Use Claude
+```bash
+dotnet user-secrets set "LiteLLM:ApiKey" "your-anthropic-api-key" 
+dotnet user-secrets set "LiteLLM:Model" "claude-3-sonnet-20240229"
+dotnet run
+```
+
+#### Option D: Use Local Ollama
+```bash
+# Start Ollama and pull a model
+ollama pull llama3.1:8b
+
+# Configure the app
+dotnet user-secrets set "LiteLLM:Model" "llama3.1:8b"
+dotnet run
+```
+
+### 3. Configuration
+
+The application uses a unified configuration approach. Edit `appsettings.json` or use user secrets:
 
 ```json
 {
-  "OpenAI": {
-    "ApiKey": "your-openai-api-key-here",
+  "LiteLLM": {
     "Model": "gpt-3.5-turbo",
+    "ApiKey": "your-api-key-here",
     "MaxTokens": 150,
-    "Temperature": 0.7
-  },
-  "Gemini": {
-    "ApiKey": "your-gemini-api-key-here",
-    "Model": "gemini-1.5-flash",
-    "MaxTokens": 150,
-    "Temperature": 0.7
-  },
-  "AI": {
-    "Provider": "Gemini"
+    "Temperature": 0.7,
+    "BaseUrl": "",
+    "OllamaUrl": "http://localhost:11434/"
   },
   "ChatBot": {
     "Name": "AI Assistant",
@@ -52,41 +92,13 @@ Edit the `appsettings.json` file to configure the chatbot:
 }
 ```
 
-#### Configuration Options
+See [LITELLM_CONFIG.md](LITELLM_CONFIG.md) for detailed configuration examples for all providers.
 
-**AI Provider Settings:**
-- `Provider`: Choose which AI service to use ("OpenAI" or "Gemini")
-
-**OpenAI Settings:**
-- `ApiKey`: Your OpenAI API key (leave as placeholder to use mock service)
-- `Model`: The GPT model to use (e.g., "gpt-3.5-turbo", "gpt-4")
-- `MaxTokens`: Maximum number of tokens in the response (default: 150)
-- `Temperature`: Response creativity (0.0 to 1.0, default: 0.7)
-
-**Gemini Settings:**
-- `ApiKey`: Your Google Gemini API key (leave as placeholder to use mock service)
-- `Model`: The Gemini model to use (e.g., "gemini-1.5-flash", "gemini-1.5-pro")
-- `MaxTokens`: Maximum number of tokens in the response (default: 150)
-- `Temperature`: Response creativity (0.0 to 1.0, default: 0.7)
-
-**ChatBot Settings:**
-- `Name`: The name displayed for the bot
-- `WelcomeMessage`: Message shown when the chatbot starts
-- `GoodbyeMessage`: Message shown when exiting
-
-### 3. 🔒 Secure API Key Setup
+### 4. 🔒 Secure API Key Setup
 
 > **⚠️ SECURITY NOTICE:** Never store API keys directly in `appsettings.json` or commit them to version control!
 
-#### Getting a Google Gemini API Key (Recommended)
-
-1. Visit [Google AI Studio](https://aistudio.google.com/)
-2. Sign in with your Google account
-3. Click "Get API key" in the left sidebar
-4. Create a new API key or use an existing one
-5. **Securely store the key using User Secrets** (see below)
-
-#### Secure Storage Using User Secrets (Recommended)
+#### Using User Secrets (Recommended)
 
 1. Initialize user secrets:
    ```bash
@@ -95,23 +107,17 @@ Edit the `appsettings.json` file to configure the chatbot:
 
 2. Store your API key securely:
    ```bash
-   # For Gemini (recommended)
-   dotnet user-secrets set "Gemini:ApiKey" "your-actual-gemini-api-key"
-   
-   # Or for OpenAI
-   dotnet user-secrets set "OpenAI:ApiKey" "your-actual-openai-api-key"
+   # For any provider
+   dotnet user-secrets set "LiteLLM:ApiKey" "your-actual-api-key"
+   dotnet user-secrets set "LiteLLM:Model" "your-preferred-model"
    ```
 
-3. The keys are now stored securely outside your project directory!
+#### Popular API Key Sources
 
-#### Getting an OpenAI API Key (Alternative)
-
-1. Visit [OpenAI's website](https://platform.openai.com/)
-2. Sign up or log in to your account
-3. Navigate to the API section
-4. Generate a new API key
-5. Store securely: `dotnet user-secrets set "OpenAI:ApiKey" "your-actual-openai-api-key"`
-6. Set `"Provider": "OpenAI"` in `appsettings.json`
+- **OpenAI**: Get from [platform.openai.com](https://platform.openai.com/)
+- **Anthropic**: Get from [console.anthropic.com](https://console.anthropic.com/)
+- **Google Gemini**: Get from [aistudio.google.com](https://aistudio.google.com/)
+- **Ollama**: No API key needed - run locally
 
 #### 📚 For Complete Security Guide
 See [SECURITY.md](SECURITY.md) for detailed instructions on:
@@ -120,7 +126,7 @@ See [SECURITY.md](SECURITY.md) for detailed instructions on:
 - Security best practices
 - Team collaboration guidelines
 
-**Note:** If you don't configure an API key for your chosen provider, the application will automatically use the built-in mock AI service.
+**Note:** If you don't configure an API key, the application will automatically use the built-in mock AI service.
 
 ## Running the Application
 
@@ -173,8 +179,9 @@ AI Assistant: Goodbye! Have a great day!
 
 The application is built with a clean architecture using:
 
+- **Unified AI Service**: Single LiteLLMService supporting multiple providers
 - **Dependency Injection**: Microsoft.Extensions.DependencyInjection
-- **Configuration**: Microsoft.Extensions.Configuration
+- **Configuration**: Microsoft.Extensions.Configuration with secure user secrets
 - **Logging**: Microsoft.Extensions.Logging
 - **HTTP Client**: Microsoft.Extensions.Http for API calls
 
@@ -184,37 +191,70 @@ The application is built with a clean architecture using:
 AIChatBot/
 ├── Services/
 │   ├── IAIService.cs          # AI service interface
-│   ├── OpenAIService.cs       # OpenAI implementation
-│   ├── GeminiService.cs       # Google Gemini implementation
+│   ├── LiteLLMService.cs      # Unified multi-provider service
 │   ├── MockAIService.cs       # Mock AI implementation
 │   └── ChatBotService.cs      # Main chatbot logic
 ├── Program.cs                 # Application entry point
 ├── appsettings.json          # Configuration file
+├── LITELLM_CONFIG.md         # Provider configuration examples
 ├── AIChatBot.csproj          # Project file
 └── README.md                 # This file
 ```
 
+## Adding New AI Providers
+
+The unified LiteLLMService makes it easy to add new providers:
+
+1. **Add Provider Detection**: Update `GetProviderFromModel()` method
+2. **Add API Implementation**: Add a new `Call[Provider]Async()` method  
+3. **Configure HTTP Client**: Add provider-specific headers in `ConfigureHttpClientForProvider()`
+4. **Update Documentation**: Add examples to `LITELLM_CONFIG.md`
+
+### Example: Adding a New Provider
+
+```csharp
+private async Task<string> CallCustomProviderAsync(string userInput)
+{
+    var requestBody = new
+    {
+        model = _model,
+        prompt = userInput,
+        max_tokens = _maxTokens,
+        temperature = _temperature
+    };
+    
+    var json = JsonSerializer.Serialize(requestBody);
+    var content = new StringContent(json, Encoding.UTF8, "application/json");
+    
+    var response = await _httpClient.PostAsync("generate", content);
+    // Handle response...
+}
+```
+
 ## Extending the Chatbot
 
-### Adding New AI Services
+### Switching Models at Runtime
 
-1. Implement the `IAIService` interface
-2. Register your service in `Program.cs`
-3. Configure any required settings in `appsettings.json`
+You can easily switch between different models by updating the configuration:
+
+```bash
+# Switch to GPT-4
+dotnet user-secrets set "LiteLLM:Model" "gpt-4"
+
+# Switch to Claude
+dotnet user-secrets set "LiteLLM:Model" "claude-3-sonnet-20240229" 
+dotnet user-secrets set "LiteLLM:ApiKey" "your-anthropic-key"
+
+# Switch to local Llama
+dotnet user-secrets set "LiteLLM:Model" "llama3.1:8b"
+dotnet user-secrets set "LiteLLM:ApiKey" ""
+```
 
 ### Customizing Responses
 
 - Modify `MockAIService.cs` for local responses
-- Adjust the system message in `OpenAIService.cs` for OpenAI behavior
+- Adjust system messages in `LiteLLMService.cs` for AI behavior
 - Add new conversation logic in `ChatBotService.cs`
-
-### Adding New Features
-
-The dependency injection setup makes it easy to add new services:
-
-```csharp
-services.AddScoped<INewService, NewServiceImplementation>();
-```
 
 ## Troubleshooting
 

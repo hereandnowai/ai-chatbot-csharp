@@ -45,39 +45,21 @@ namespace AIChatBot
                 {
                     var configuration = context.Configuration;
 
-                    // Configure HttpClient for AI services
-                    services.AddHttpClient<OpenAIService>();
-                    services.AddHttpClient<GeminiService>();
+                    // Configure HttpClient for the unified LiteLLM service
+                    services.AddHttpClient<LiteLLMService>();
 
-                    // Register AI service based on configuration
-                    var aiProvider = configuration["AI:Provider"]?.ToLowerInvariant() ?? "openai";
+                    // Register the unified LiteLLM service
+                    var apiKey = configuration["LiteLLM:ApiKey"];
+                    var model = configuration["LiteLLM:Model"] ?? "gpt-3.5-turbo";
 
-                    switch (aiProvider)
+                    if (!string.IsNullOrEmpty(apiKey) && apiKey != "your-api-key-here")
                     {
-                        case "gemini":
-                            var geminiApiKey = configuration["Gemini:ApiKey"];
-                            if (!string.IsNullOrEmpty(geminiApiKey) && geminiApiKey != "your-gemini-api-key-here")
-                            {
-                                services.AddScoped<IAIService, GeminiService>();
-                            }
-                            else
-                            {
-                                services.AddScoped<IAIService, MockAIService>();
-                            }
-                            break;
-
-                        case "openai":
-                        default:
-                            var openaiApiKey = configuration["OpenAI:ApiKey"];
-                            if (!string.IsNullOrEmpty(openaiApiKey) && openaiApiKey != "your-openai-api-key-here")
-                            {
-                                services.AddScoped<IAIService, OpenAIService>();
-                            }
-                            else
-                            {
-                                services.AddScoped<IAIService, MockAIService>();
-                            }
-                            break;
+                        services.AddScoped<IAIService, LiteLLMService>();
+                    }
+                    else
+                    {
+                        // Fallback to mock service if no API key is configured
+                        services.AddScoped<IAIService, MockAIService>();
                     }
 
                     // Register ChatBot service

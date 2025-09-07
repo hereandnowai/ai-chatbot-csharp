@@ -52,13 +52,27 @@ namespace AIChatBot
                     var apiKey = configuration["LiteLLM:ApiKey"];
                     var model = configuration["LiteLLM:Model"] ?? "gpt-3.5-turbo";
 
-                    if (!string.IsNullOrEmpty(apiKey) && apiKey != "your-api-key-here")
+                    // Determine if we should use LiteLLM or mock service
+                    bool useLiteLLM = false;
+                    
+                    // Check if it's an Ollama model (local, no API key needed)
+                    if (IsOllamaModel(model))
+                    {
+                        useLiteLLM = true;
+                    }
+                    // Check if we have a valid API key for cloud providers
+                    else if (!string.IsNullOrEmpty(apiKey) && apiKey != "your-api-key-here")
+                    {
+                        useLiteLLM = true;
+                    }
+
+                    if (useLiteLLM)
                     {
                         services.AddScoped<IAIService, LiteLLMService>();
                     }
                     else
                     {
-                        // Fallback to mock service if no API key is configured
+                        // Fallback to mock service if no API key is configured for cloud providers
                         services.AddScoped<IAIService, MockAIService>();
                     }
 
@@ -73,5 +87,20 @@ namespace AIChatBot
                     logging.ClearProviders();
                     logging.SetMinimumLevel(LogLevel.Warning);
                 });
+
+        private static bool IsOllamaModel(string model)
+        {
+            if (string.IsNullOrEmpty(model)) return false;
+            
+            // Check for common Ollama model patterns
+            return model.StartsWith("llama", StringComparison.OrdinalIgnoreCase) ||
+                   model.StartsWith("mistral", StringComparison.OrdinalIgnoreCase) ||
+                   model.StartsWith("deepseek", StringComparison.OrdinalIgnoreCase) ||
+                   model.StartsWith("qwen", StringComparison.OrdinalIgnoreCase) ||
+                   model.StartsWith("stable-code", StringComparison.OrdinalIgnoreCase) ||
+                   model.StartsWith("gpt-oss", StringComparison.OrdinalIgnoreCase) ||
+                   model.Contains("local") ||
+                   model.Contains(":"); // Ollama models often have tag format like "llama3.1:8b"
+        }
     }
 }

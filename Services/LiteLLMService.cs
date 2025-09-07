@@ -39,7 +39,7 @@ namespace AIChatBot.Services
         private void ConfigureHttpClientForProvider()
         {
             var provider = GetProviderFromModel(_model);
-            
+
             switch (provider.ToLowerInvariant())
             {
                 case "openai":
@@ -85,13 +85,13 @@ namespace AIChatBot.Services
             if (model.StartsWith("gpt-", StringComparison.OrdinalIgnoreCase) ||
                 model.StartsWith("o1-", StringComparison.OrdinalIgnoreCase))
                 return "openai";
-            
+
             if (model.StartsWith("claude-", StringComparison.OrdinalIgnoreCase))
                 return "anthropic";
-            
+
             if (model.StartsWith("gemini-", StringComparison.OrdinalIgnoreCase))
                 return "gemini";
-            
+
             if (model.StartsWith("llama", StringComparison.OrdinalIgnoreCase) ||
                 model.StartsWith("mistral", StringComparison.OrdinalIgnoreCase) ||
                 model.StartsWith("deepseek", StringComparison.OrdinalIgnoreCase) ||
@@ -285,7 +285,9 @@ namespace AIChatBot.Services
 
             if (!response.IsSuccessStatusCode)
             {
-                _logger.LogError("Ollama API request failed with status: {StatusCode}", response.StatusCode);
+                var errorContent = await response.Content.ReadAsStringAsync();
+                _logger.LogError("Ollama API request failed with status: {StatusCode}, Content: {ErrorContent}",
+                    response.StatusCode, errorContent);
                 return "I'm sorry, I'm having trouble connecting to my AI service right now. Please try again later.";
             }
 

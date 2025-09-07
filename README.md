@@ -1,78 +1,144 @@
-# AI ChatBot
+# HERE AND NOW AI — AI ChatBot (C#)
 
-An AI-powered chatbot built with C# that supports multiple AI providers through a unified LiteLLM service.
+![HERE AND NOW AI](https://raw.githubusercontent.com/hereandnowai/images/refs/heads/main/logos/logo-of-here-and-now-ai.png)
 
-## Features
+designed with passion for innovation
 
-- 🤖 **Multi-Provider Support**: OpenAI, Anthropic Claude, Google Gemini, Ollama (local models)
-- 🌐 **Unified Interface**: Single configuration for all AI providers
-- 🏠 **Local Models**: Support for Ollama with Llama, Mistral, DeepSeek, Qwen, and more
-- 🔄 **Fallback Mode**: Built-in mock AI service when no API key is configured
-- ⚙️ **Easy Configuration**: Simple JSON configuration or secure user secrets
-- 🪵 **Structured Logging**: Built-in logging with Microsoft.Extensions.Logging
-- 💉 **Clean Architecture**: Dependency injection and modular design
-- 🎨 **Colorful Interface**: User-friendly console with colors and animations
-- 🔧 **Extensible**: Easy to add new providers or customize behavior
 
-## Supported AI Providers
+This repository contains a production-ready example AI chatbot written in C# (.NET 8.0). The project demonstrates a clean architecture with a single unified LLM service (LiteLLMService) that can target multiple providers: OpenAI, Anthropic Claude, Google Gemini, and local Ollama models. The application also includes a MockAIService for local development and testing.
 
-| Provider | Models | Example |
-|----------|--------|---------|
-| **OpenAI** | GPT-3.5, GPT-4, o1 | `gpt-4`, `gpt-3.5-turbo` |
-| **Anthropic** | Claude 3 | `claude-3-sonnet-20240229` |
-| **Google** | Gemini | `gemini-1.5-pro`, `gemini-1.5-flash` |
-| **Ollama** | Local models | `llama3.1:8b`, `mistral:7b` |
-| **Custom** | Any OpenAI-compatible API | Configure via `BaseUrl` |
+Table of Contents
+- Project overview
+- Files and responsibilities
+- Branding and contact
+- Quick start (clone, configure, run)
+- Using GitHub Copilot and the provided prompts
+- Provider configuration (OpenAI / Claude / Gemini / Ollama)
+- Troubleshooting and tips
+- Development notes and how to extend
+- License & contribution
 
-## Prerequisites
 
-- .NET 8.0 SDK or later
-- (Optional) API key for your chosen provider
-- (Optional) Ollama installed for local models
+## Project overview
 
-## Quick Start
+Goal: Provide a simple, extensible chatbot console app that lets you switch seamlessly between cloud LLMs and local models using the same codebase.
 
-### 1. Clone the Repository
+Key features:
+- Unified LiteLLMService to handle provider detection and request/response mapping
+- Secure configuration via `dotnet user-secrets`
+- Local model support via Ollama (no API key required)
+- Mock AI fallback when no provider is configured
+- Clear separation of concerns and DI-driven design
+
+
+## Files and responsibilities
+
+- `Program.cs` — Host and DI setup; chooses `LiteLLMService` or `MockAIService` based on config
+- `Services/IAIService.cs` — Interface contract for all AI services (`GetResponseAsync`)
+- `Services/LiteLLMService.cs` — Unified multi-provider LLM client (OpenAI, Anthropic, Gemini, Ollama)
+- `Services/MockAIService.cs` — Local mock responses for testing and demos
+- `Services/ChatBotService.cs` — Console UI, conversation loop, and thinking animation
+- `appsettings.json` — Public configuration defaults (do not store secrets here)
+- `.github/instructions/copilot-instructions.md` — Copilot developer instructions (created)
+- `.github/prompts/chatbot-with-csharp.prompt.md` — Claude Sonnet 4 prompt to recreate the project (created)
+- `LITELLM_CONFIG.md` — Configuration examples for each provider
+- `MODEL_SWITCHING_GUIDE.md` — Quick reference for switching models
+- `branding.json` — Project branding and contact details (HERE AND NOW AI)
+
+
+## Branding and contact
+
+Organization: HERE AND NOW AI
+Website: https://hereandnowai.com
+Email: info@hereandnowai.com
+Phone: +91 996 296 1000
+Slogan: designed with passion for innovation
+
+Follow: https://github.com/hereandnowai
+
+
+## Quick start (clone, configure, run)
+
+1. Clone the repo:
+
 ```bash
 git clone https://github.com/hereandnowai/ai-chatbot-csharp.git
 cd ai-chatbot-csharp
 ```
 
-### 2. Choose Your AI Provider
+2. Ensure .NET 8.0 SDK is installed (`dotnet --version` >= 8.0)
 
-#### Option A: Quick Test (No API Key Required)
-Just run the app - it will use the mock AI service:
+3. Restore packages and build:
+
+```bash
+dotnet restore
+dotnet build
+```
+
+4. Initialize user secrets (optional but recommended):
+
+```bash
+dotnet user-secrets init
+```
+
+5. Configure your provider (examples below). For quick testing, run the mock service without keys:
+
 ```bash
 dotnet run
 ```
 
-#### Option B: Use OpenAI GPT-4
+### Configure for Gemini (example)
+
 ```bash
-dotnet user-secrets set "LiteLLM:ApiKey" "your-openai-api-key"
-dotnet user-secrets set "LiteLLM:Model" "gpt-4"
+dotnet user-secrets set "LiteLLM:Model" "gemini-1.5-flash"
+dotnet user-secrets set "LiteLLM:ApiKey" "YOUR_REAL_GEMINI_KEY"
+```
+
+Then run:
+
+```bash
 dotnet run
 ```
 
-#### Option C: Use Claude
-```bash
-dotnet user-secrets set "LiteLLM:ApiKey" "your-anthropic-api-key" 
-dotnet user-secrets set "LiteLLM:Model" "claude-3-sonnet-20240229"
-dotnet run
-```
+### Configure for Ollama (local model)
 
-#### Option D: Use Local Ollama
+1. Start Ollama and pull a model (example):
+
 ```bash
-# Start Ollama and pull a model
 ollama pull llama3.1:8b
+```
 
-# Configure the app
+2. Set model and clear API key:
+
+```bash
 dotnet user-secrets set "LiteLLM:Model" "llama3.1:8b"
+dotnet user-secrets set "LiteLLM:ApiKey" ""
+```
+
+3. Run the app:
+
+```bash
 dotnet run
 ```
 
-### 3. Configuration
 
-The application uses a unified configuration approach. Edit `appsettings.json` or use user secrets:
+## Using GitHub Copilot and the provided prompts
+
+This repository includes two artifacts for AI-assisted development:
+
+- `.github/instructions/copilot-instructions.md` — Use this file to guide GitHub Copilot when making code changes. It contains development rules, architecture overview, and implementation guidelines.
+
+- `.github/prompts/chatbot-with-csharp.prompt.md` — A long-form prompt designed for Claude Sonnet 4 to recreate the project from scratch. Use this prompt as input to an LLM to scaffold or refactor the code.
+
+How to use the prompt with Copilot (conceptual):
+1. Open the `.github/prompts/chatbot-with-csharp.prompt.md` file and copy the prompt.
+2. Provide it to a model (Claude Sonnet 4) that can accept long prompts (via API or web UI).
+3. Ask the model to generate files, tests, and a runnable project following the prompt.
+
+
+## Provider configuration (examples)
+
+`appsettings.json` holds defaults; use user secrets to store API keys.
 
 ```json
 {
@@ -83,217 +149,36 @@ The application uses a unified configuration approach. Edit `appsettings.json` o
     "Temperature": 0.7,
     "BaseUrl": "",
     "OllamaUrl": "http://localhost:11434/"
-  },
-  "ChatBot": {
-    "Name": "AI Assistant",
-    "WelcomeMessage": "Hello! I'm your AI assistant. How can I help you today?",
-    "GoodbyeMessage": "Goodbye! Have a great day!"
   }
 }
 ```
 
-See [LITELLM_CONFIG.md](LITELLM_CONFIG.md) for detailed configuration examples for all providers.
+- OpenAI: set `LiteLLM:Model` to `gpt-4` and `LiteLLM:ApiKey` to your OpenAI key
+- Anthropic: set `LiteLLM:Model` to `claude-3-sonnet-20240229` and `LiteLLM:ApiKey` to your Anthropic key
+- Gemini: set `LiteLLM:Model` to `gemini-1.5-flash` and `LiteLLM:ApiKey` to your Gemini key
+- Ollama/local: set `LiteLLM:Model` to a local model such as `llama3.1:8b` and `LiteLLM:ApiKey` to an empty string
 
-### 4. 🔒 Secure API Key Setup
 
-> **⚠️ SECURITY NOTICE:** Never store API keys directly in `appsettings.json` or commit them to version control!
+## Troubleshooting and tips
 
-#### Using User Secrets (Recommended)
+- If you see `"I'm sorry, I'm having trouble connecting to my AI service right now"`, verify `LiteLLM:ApiKey` in user secrets and ensure the correct `LiteLLM:Model` is set.
+- For Ollama issues, verify `http://localhost:11434/api/tags` returns available models and that the model name matches exactly.
+- Use `dotnet user-secrets list` to confirm runtime configuration
 
-1. Initialize user secrets:
-   ```bash
-   dotnet user-secrets init
-   ```
 
-2. Store your API key securely:
-   ```bash
-   # For any provider
-   dotnet user-secrets set "LiteLLM:ApiKey" "your-actual-api-key"
-   dotnet user-secrets set "LiteLLM:Model" "your-preferred-model"
-   ```
+## Development notes and how to extend
 
-#### Popular API Key Sources
+- To add a new provider, update `LiteLLMService.GetProviderFromModel()` and add a provider-specific call method and HTTP configuration.
+- Use `MockAIService` for unit tests to avoid external API calls.
+- For streaming responses or function calling, enhance `LiteLLMService` with streaming handlers and tool interfaces.
 
-- **OpenAI**: Get from [platform.openai.com](https://platform.openai.com/)
-- **Anthropic**: Get from [console.anthropic.com](https://console.anthropic.com/)
-- **Google Gemini**: Get from [aistudio.google.com](https://aistudio.google.com/)
-- **Ollama**: No API key needed - run locally
 
-#### 📚 For Complete Security Guide
-See [SECURITY.md](SECURITY.md) for detailed instructions on:
-- User Secrets setup
-- Environment variables for production
-- Security best practices
-- Team collaboration guidelines
+## License & contribution
 
-**Note:** If you don't configure an API key, the application will automatically use the built-in mock AI service.
+MIT License — contributions welcome. Please open issues or PRs on GitHub: https://github.com/hereandnowai/ai-chatbot-csharp
 
-## Running the Application
 
-### Option 1: Using .NET CLI
+---
 
-```bash
-dotnet run
-```
-
-### Option 2: Build and Run
-
-```bash
-dotnet build
-dotnet run --project AIChatBot.csproj
-```
-
-### Option 3: Build and Run Executable
-
-```bash
-dotnet publish -c Release -o ./publish
-./publish/AIChatBot
-```
-
-## Usage
-
-1. Start the application
-2. Type your messages and press Enter
-3. The AI will respond to your messages
-4. Type `exit`, `quit`, `bye`, or `goodbye` to end the conversation
-
-### Example Conversation
-
-```
-🤖 AI Assistant
-==================================================
-Hello! I'm your AI assistant. How can I help you today?
-Type 'exit', 'quit', or 'bye' to end the conversation.
-
-You: What is the weather like today?
-AI Assistant: I don't have access to real-time weather data, but I hope it's nice where you are! Is there something specific about weather you'd like to discuss?
-
-You: Tell me a joke
-AI Assistant: That's an interesting question! Let me think about that... You mentioned: 'Tell me a joke'. What else would you like to know?
-
-You: exit
-AI Assistant: Goodbye! Have a great day!
-```
-
-## Architecture
-
-The application is built with a clean architecture using:
-
-- **Unified AI Service**: Single LiteLLMService supporting multiple providers
-- **Dependency Injection**: Microsoft.Extensions.DependencyInjection
-- **Configuration**: Microsoft.Extensions.Configuration with secure user secrets
-- **Logging**: Microsoft.Extensions.Logging
-- **HTTP Client**: Microsoft.Extensions.Http for API calls
-
-### Project Structure
-
-```
-AIChatBot/
-├── Services/
-│   ├── IAIService.cs          # AI service interface
-│   ├── LiteLLMService.cs      # Unified multi-provider service
-│   ├── MockAIService.cs       # Mock AI fallback service
-│   └── ChatBotService.cs      # Main chatbot logic
-├── Program.cs                 # Application entry point
-├── appsettings.json          # Configuration file
-├── LITELLM_CONFIG.md         # Provider configuration examples
-├── MODEL_SWITCHING_GUIDE.md  # Quick model switching reference
-├── AIChatBot.csproj          # Project file
-└── README.md                 # This file
-```
-
-## Adding New AI Providers
-
-The unified LiteLLMService makes it easy to add new providers:
-
-1. **Add Provider Detection**: Update `GetProviderFromModel()` method
-2. **Add API Implementation**: Add a new `Call[Provider]Async()` method  
-3. **Configure HTTP Client**: Add provider-specific headers in `ConfigureHttpClientForProvider()`
-4. **Update Documentation**: Add examples to `LITELLM_CONFIG.md`
-
-### Example: Adding a New Provider
-
-```csharp
-private async Task<string> CallCustomProviderAsync(string userInput)
-{
-    var requestBody = new
-    {
-        model = _model,
-        prompt = userInput,
-        max_tokens = _maxTokens,
-        temperature = _temperature
-    };
-    
-    var json = JsonSerializer.Serialize(requestBody);
-    var content = new StringContent(json, Encoding.UTF8, "application/json");
-    
-    var response = await _httpClient.PostAsync("generate", content);
-    // Handle response...
-}
-```
-
-## Extending the Chatbot
-
-### Switching Models at Runtime
-
-You can easily switch between different models by updating the configuration:
-
-```bash
-# Switch to GPT-4
-dotnet user-secrets set "LiteLLM:Model" "gpt-4"
-
-# Switch to Claude
-dotnet user-secrets set "LiteLLM:Model" "claude-3-sonnet-20240229" 
-dotnet user-secrets set "LiteLLM:ApiKey" "your-anthropic-key"
-
-# Switch to local Llama
-dotnet user-secrets set "LiteLLM:Model" "llama3.1:8b"
-dotnet user-secrets set "LiteLLM:ApiKey" ""
-```
-
-### Customizing Responses
-
-- Modify `MockAIService.cs` for local responses
-- Adjust system messages in `LiteLLMService.cs` for AI behavior
-- Add new conversation logic in `ChatBotService.cs`
-
-## Troubleshooting
-
-### Common Issues
-
-1. **OpenAI API Errors**
-   - Verify your API key is correct
-   - Check your OpenAI account has available credits
-   - Ensure your API key has the necessary permissions
-
-2. **Network Issues**
-   - Check your internet connection
-   - Verify firewall settings allow outbound HTTPS connections
-
-3. **Configuration Issues**
-   - Ensure `appsettings.json` is in the same directory as the executable
-   - Verify JSON syntax is correct
-
-### Mock Service Mode
-
-If you see "Using mock AI service (OpenAI not configured)" in the logs, the application is running in mock mode. This happens when:
-- No API key is configured
-- The API key is set to the placeholder value
-- The OpenAI service fails to initialize
-
-## Dependencies
-
-The project uses the following NuGet packages:
-
-- Microsoft.Extensions.Hosting (9.0.8)
-- Microsoft.Extensions.Configuration.Json (9.0.8)
-- Microsoft.Extensions.Http (9.0.8)
-- System.Text.Json (9.0.8)
-
-## License
-
-This project is open source and available under the MIT License.
-
-## Contributing
-
-Feel free to submit issues, feature requests, or pull requests to improve the chatbot!
+Built by HERE AND NOW AI — https://hereandnowai.com
+Contact: info@hereandnowai.com

@@ -192,11 +192,12 @@ AIChatBot/
 ├── Services/
 │   ├── IAIService.cs          # AI service interface
 │   ├── LiteLLMService.cs      # Unified multi-provider service
-│   ├── MockAIService.cs       # Mock AI implementation
+│   ├── MockAIService.cs       # Mock AI fallback service
 │   └── ChatBotService.cs      # Main chatbot logic
 ├── Program.cs                 # Application entry point
 ├── appsettings.json          # Configuration file
 ├── LITELLM_CONFIG.md         # Provider configuration examples
+├── MODEL_SWITCHING_GUIDE.md  # Quick model switching reference
 ├── AIChatBot.csproj          # Project file
 └── README.md                 # This file
 ```

@@ -54,7 +54,7 @@ namespace AIChatBot
 
                     // Determine if we should use LiteLLM or mock service
                     bool useLiteLLM = false;
-                    
+
                     // Check if it's an Ollama model (local, no API key needed)
                     if (IsOllamaModel(model))
                     {
@@ -91,7 +91,7 @@ namespace AIChatBot
         private static bool IsOllamaModel(string model)
         {
             if (string.IsNullOrEmpty(model)) return false;
-            
+
             // Check for common Ollama model patterns
             return model.StartsWith("llama", StringComparison.OrdinalIgnoreCase) ||
                    model.StartsWith("mistral", StringComparison.OrdinalIgnoreCase) ||
